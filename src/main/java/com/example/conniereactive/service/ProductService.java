@@ -5,8 +5,12 @@ import com.example.conniereactive.dto.ProductDto;
 import com.example.conniereactive.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -14,8 +18,9 @@ public class ProductService {
 
     public final ProductRepository productRepository;
 
-    public Flux<Product> getProducts() {
-        return productRepository.findAll();
+    public Flux<ProductDto> getProducts() {
+        return productRepository.findAll()
+                .map(ProductDto::toDto);
     }
 
     public Mono<Product> getProduct(Long id) {
@@ -26,8 +31,21 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Mono<Product> changeStatus(Long productId) {
-        return null;
+    @Transactional
+    public Mono<Product> changeStatus(Long id, ProductDto productDto) {
+        return getProduct(id)
+                .doOnNext(product -> product.changeStatus(productDto.getStatus()))
+                .flatMap(productRepository::save);
+    }
+
+    @Transactional
+    public Mono<Product> changeAll(Long id, ProductDto productDto) {
+        return getProduct(id)
+                .map(product -> {
+                    productDto.setId(id);
+                    return ProductDto.toEntity(productDto);
+                })
+                .flatMap(productRepository::save);
     }
 
 }
