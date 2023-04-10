@@ -1,0 +1,14 @@
+spring:
+  mongodb:
+    embedded:
+      version: 3.5.5
+  devtools:
+    livereload:
+      enabled: true
+    remote:
+      restart:
+        enabled: true
+
+logging:
+  level:
+    web: debug
